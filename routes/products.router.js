@@ -1,6 +1,8 @@
 const express = require('express');
 
-const ProductsService = require('./../services/product.services')
+const ProductsService = require('./../services/product.services');
+const validatorHandler = require('./../middelware/validator.handler');
+const {createProductSchema, updateProductSchema, getProductSchema} = require('./../schemas/product.schema');
 
 const router = express.Router();
 const service = new ProductsService();
@@ -11,37 +13,41 @@ router.get("/", async (req, res) => {
   res.json(products);
 });
 
-router.get('/:id', async (req, res, next) => {
-
-  try {
-    const {id} = req.params;
-    const product = await service.findOne(id);
-    res.json(product);
-  } catch (error) {
-    next(error)
+router.get('/:id',
+validatorHandler(getProductSchema, 'params'),
+  async (req, res, next) => {
+    try {
+      const {id} = req.params;
+      const product = await service.findOne(id);
+      res.json(product);
+    } catch (error) {
+      next(error)
+    }
   }
+);
 
-})
 
+router.post('/',
+  validatorHandler(createProductSchema, 'body'),
+  async (req, res) => {
+    //const {name, price, image} = req.body;
+    const body = req.body;
+    const mewProduct = await service.create(body);
+    res.status(201).json(mewProduct);
+  }
+);
 
-router.post('/', async (req, res) => {
-  //const {name, price, image} = req.body;
-  const body = req.body;
-  const mewProduct = await service.create(body);
-  res.status(201).json(mewProduct);
-})
-
-router.patch('/:id', async (req, res) => {
-
+router.patch('/:id',
+  validatorHandler(getProductSchema, 'params'),
+  validatorHandler(updateProductSchema, 'body'),
+  async (req, res, next) => {
   try {
     const {id} = req.params;
     const body = req.body;
     const product = await service.update(id, body)
     res.json(product);
   } catch (error) {
-    res.status(404).json({
-      message: error.message
-    })
+    next(error)
   }
 
 })

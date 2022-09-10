@@ -2,6 +2,7 @@ const faker = require('faker');
 
 const boom = require('@hapi/boom')
 
+
 class ProductsService {
 
   constructor() {
@@ -17,13 +18,15 @@ class ProductsService {
         id: faker.datatype.uuid(),
         name: faker.commerce.productName(),
         price: parseInt(faker.commerce.price(), 10),
+        isBlock: faker.datatype.boolean(),
       })
     }
   }
 
   async create(data) {
     const newProduct = {
-      if: faker.datatype.uuid(),
+      id: faker.datatype.uuid(),
+      isBlock: faker.datatype.boolean(),
       ...data
     }
     this.products.push(newProduct);
@@ -34,7 +37,7 @@ class ProductsService {
     return new Promise((resolve, reject) => {
       setTimeout(() => {
         resolve(this.products)
-      }, 5000);
+      }, 2000);
     })
     //  return this.products;
   }
@@ -43,6 +46,9 @@ class ProductsService {
     const product = this.products.find(item => item.id === id);
     if (!product) {
       throw boom.notFound('Product not found');
+    }
+    if(product.isBlock) {
+      throw boom.conflict('This product is block')
     }
     return product;
   }
